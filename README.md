@@ -27,3 +27,5 @@ npx expo start
 ```
 
 Then press `i` for the iOS simulator, or scan the QR code with Expo Go on your phone.
+
+### 🚧 Work in Progress
