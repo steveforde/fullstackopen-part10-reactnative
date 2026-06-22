@@ -4,10 +4,10 @@ import RepositoryItem from "./RepositoryItem";
 const styles = StyleSheet.create({
   separator: {
     height: 10,
-    backgroundColor: "#e1e4e8",
   },
 });
 
+// Mock data array from the exercise configuration
 const repositories = [
   {
     id: "jaredpalmer.formik",
@@ -58,12 +58,15 @@ const repositories = [
 const ItemSeparator = () => <View style={styles.separator} />;
 
 const RepositoryList = () => {
+  // TEST LOG: Check if this fires off inside the terminal on save
+  console.log("--- RepositoryList Component Rendered Successfully ---");
+
   return (
     <FlatList
       data={repositories}
       ItemSeparatorComponent={ItemSeparator}
-      keyExtractor={(item) => item.id}
       renderItem={({ item }) => <RepositoryItem item={item} />}
+      keyExtractor={(item) => item.id}
     />
   );
 };
