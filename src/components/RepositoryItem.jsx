@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import Text from "./Text";
 
 const styles = StyleSheet.create({
   container: {
@@ -10,8 +11,12 @@ const styles = StyleSheet.create({
 const RepositoryItem = ({ item }) => {
   return (
     <View style={styles.container}>
-      <Text style={{ fontWeight: "bold" }}>Full name: {item.fullName}</Text>
-      <Text>Description: {item.description}</Text>
+      <Text fontWeight="bold" fontSize="subheading">
+        {item.fullName}
+      </Text>
+      <Text color="textSecondary" style={{ marginVertical: 5 }}>
+        {item.description}
+      </Text>
       <Text>Language: {item.language}</Text>
       <Text>Stars: {item.stargazersCount}</Text>
       <Text>Forks: {item.forksCount}</Text>
