@@ -21,19 +21,18 @@ const styles = StyleSheet.create({
   infoContainer: {
     flexDirection: "column",
     flexShrink: 1,
-    alignItems: "flex-start",
+    gap: 4,
   },
-  description: {
-    marginVertical: 5,
+  badgeContainer: {
+    alignSelf: "flex-start", // Forces the container to wrap the text tightly on Web
+    backgroundColor: theme.colors.primary,
+    borderRadius: 4,
+    overflow: "hidden",
   },
   languageBadge: {
     color: "#fff",
-    backgroundColor: theme.colors.primary,
     paddingVertical: 4,
     paddingHorizontal: 6,
-    borderRadius: 4,
-    marginTop: 4,
-    overflow: "hidden", // Required for borderRadius on iOS Text components
   },
   statsSection: {
     flexDirection: "row",
@@ -44,21 +43,20 @@ const styles = StyleSheet.create({
 const RepositoryItem = ({ item }) => {
   return (
     <View style={styles.container}>
-      {/* Upper Info Block */}
       <View style={styles.topSection}>
         <Image source={{ uri: item.ownerAvatarUrl }} style={styles.avatar} />
         <View style={styles.infoContainer}>
           <Text fontWeight="bold" fontSize="subheading">
             {item.fullName}
           </Text>
-          <Text color="textSecondary" style={styles.description}>
-            {item.description}
-          </Text>
-          <Text style={styles.languageBadge}>{item.language}</Text>
+          <Text color="textSecondary">{item.description}</Text>
+          {/* Wrapped in a self-starting container */}
+          <View style={styles.badgeContainer}>
+            <Text style={styles.languageBadge}>{item.language}</Text>
+          </View>
         </View>
       </View>
 
-      {/* Bottom Row Stats Block */}
       <View style={styles.statsSection}>
         <RepositoryStat label="Stars" count={item.stargazersCount} />
         <RepositoryStat label="Forks" count={item.forksCount} />
