@@ -1,29 +1,29 @@
-import { NativeRouter } from "react-router-native";
+import { ApolloProvider } from "@apollo/client/react"; // Ensure /react is included
 import { StatusBar } from "expo-status-bar";
-import { ApolloProvider } from "@apollo/client/react"; // 👈 Force the direct React entry point
+import { NativeRouter } from "react-router-native";
 
 import Main from "./src/components/Main";
 import createApolloClient from "./src/utils/apolloClient";
+import AuthStorage from "./src/utils/authStorage";
+import AuthStorageContext from "./src/contexts/AuthStorageContext";
 
-// 👇 THESE WILL PRINT IN YOUR TERMINAL THE MOMENT YOU SAVE
-console.log("--- CHECKING IMPORTS ---");
-console.log("NativeRouter is:", typeof NativeRouter);
-console.log("StatusBar is:", typeof StatusBar);
-console.log("ApolloProvider is:", typeof ApolloProvider);
-console.log("Main Component is:", typeof Main);
-console.log("createApolloClient is:", typeof createApolloClient);
-console.log("------------------------");
-
-const apolloClient = createApolloClient();
+// 1. Initialize the storage and apollo client
+const authStorage = new AuthStorage();
+const apolloClient = createApolloClient(authStorage);
 
 const App = () => {
   return (
-    <ApolloProvider client={apolloClient}>
+    <>
+      <StatusBar style="light" />
       <NativeRouter>
-        <StatusBar style="light" />
-        <Main />
+        <ApolloProvider client={apolloClient}>
+          {/* 2. Pass authStorage into the provider value */}
+          <AuthStorageContext.Provider value={authStorage}>
+            <Main />
+          </AuthStorageContext.Provider>
+        </ApolloProvider>
       </NativeRouter>
-    </ApolloProvider>
+    </>
   );
 };
 

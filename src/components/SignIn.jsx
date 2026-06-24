@@ -1,6 +1,7 @@
 import { TextInput, Pressable, View, StyleSheet } from "react-native";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import { useNavigate } from "react-router-native"; // 1. Import useNavigate
 import Text from "./Text";
 import theme from "../theme";
 import useSignIn from "../hooks/useSignIn";
@@ -53,13 +54,14 @@ const initialValues = {
 
 const SignIn = () => {
   const [signIn] = useSignIn();
+  const navigate = useNavigate(); // 2. Initialize the navigation hook
 
   const onSubmit = async (values) => {
     const { username, password } = values;
 
     try {
-      const { data } = await signIn({ username, password });
-      console.log("Token data received:", data);
+      await signIn({ username, password });
+      navigate("/"); // 3. Redirect to the repository list view on success
     } catch (e) {
       console.log("Submission error:", e);
     }
