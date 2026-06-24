@@ -3,6 +3,7 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import Text from "./Text";
 import theme from "../theme";
+import useSignIn from "../hooks/useSignIn";
 
 const styles = StyleSheet.create({
   container: {
@@ -17,7 +18,7 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.body,
   },
   inputError: {
-    borderColor: "#d73a4a", // Soft red color matching GitHub's theme/course style
+    borderColor: "#d73a4a",
   },
   errorText: {
     color: "#d73a4a",
@@ -40,7 +41,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// 1. Define validation schema requirements
 const validationSchema = yup.object().shape({
   username: yup.string().required("Username is required"),
   password: yup.string().required("Password is required"),
@@ -52,8 +52,17 @@ const initialValues = {
 };
 
 const SignIn = () => {
-  const onSubmit = (values) => {
-    console.log(values);
+  const [signIn] = useSignIn();
+
+  const onSubmit = async (values) => {
+    const { username, password } = values;
+
+    try {
+      const { data } = await signIn({ username, password });
+      console.log("Token data received:", data);
+    } catch (e) {
+      console.log("Submission error:", e);
+    }
   };
 
   const formik = useFormik({
@@ -62,13 +71,11 @@ const SignIn = () => {
     onSubmit,
   });
 
-  // Helper flags to check validation conditions cleanly
   const usernameError = formik.touched.username && formik.errors.username;
   const passwordError = formik.touched.password && formik.errors.password;
 
   return (
     <View style={styles.container}>
-      {/* Username Field */}
       <TextInput
         style={[
           styles.input,
@@ -85,7 +92,6 @@ const SignIn = () => {
         <Text style={styles.errorText}>{formik.errors.username}</Text>
       )}
 
-      {/* Password Field */}
       <TextInput
         style={[
           styles.input,
@@ -103,7 +109,6 @@ const SignIn = () => {
         <Text style={styles.errorText}>{formik.errors.password}</Text>
       )}
 
-      {/* Submit Button */}
       <Pressable style={styles.button} onPress={formik.handleSubmit}>
         <Text style={styles.buttonText} fontSize="subheading">
           Sign in
