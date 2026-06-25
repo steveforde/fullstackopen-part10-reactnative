@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   badgeContainer: {
-    alignSelf: "flex-start", // Forces the container to wrap the text tightly on Web
+    alignSelf: "flex-start",
     backgroundColor: theme.colors.primary,
     borderRadius: 4,
     overflow: "hidden",
@@ -42,7 +42,8 @@ const styles = StyleSheet.create({
 
 const RepositoryItem = ({ item }) => {
   return (
-    <View style={styles.container}>
+    // Added the testID identifier here for Jest targeting
+    <View style={styles.container} testID="repositoryItem">
       <View style={styles.topSection}>
         <Image source={{ uri: item.ownerAvatarUrl }} style={styles.avatar} />
         <View style={styles.infoContainer}>
@@ -50,7 +51,6 @@ const RepositoryItem = ({ item }) => {
             {item.fullName}
           </Text>
           <Text color="textSecondary">{item.description}</Text>
-          {/* Wrapped in a self-starting container */}
           <View style={styles.badgeContainer}>
             <Text style={styles.languageBadge}>{item.language}</Text>
           </View>

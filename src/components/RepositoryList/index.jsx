@@ -10,10 +10,8 @@ const styles = StyleSheet.create({
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-const RepositoryList = () => {
-  const { repositories } = useRepositories();
-
-  // Extract nodes securely from the cursor pagination structure
+// 1. The Pure Presentation Component (Named export for tests)
+export const RepositoryListContainer = ({ repositories }) => {
   const repositoryNodes = repositories
     ? repositories.edges.map((edge) => edge.node)
     : [];
@@ -26,6 +24,13 @@ const RepositoryList = () => {
       keyExtractor={(item) => item.id}
     />
   );
+};
+
+// 2. The Smart Component wrapper (Default export for the app)
+const RepositoryList = () => {
+  const { repositories } = useRepositories();
+
+  return <RepositoryListContainer repositories={repositories} />;
 };
 
 export default RepositoryList;
