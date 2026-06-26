@@ -1,7 +1,7 @@
 import { TextInput, Pressable, View, StyleSheet } from "react-native";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { useNavigate } from "react-router-native"; // 1. Import useNavigate
+import { useNavigate } from "react-router-native";
 import Text from "./Text";
 import theme from "../theme";
 import useSignIn from "../hooks/useSignIn";
@@ -52,21 +52,8 @@ const initialValues = {
   password: "",
 };
 
-const SignIn = () => {
-  const [signIn] = useSignIn();
-  const navigate = useNavigate(); // 2. Initialize the navigation hook
-
-  const onSubmit = async (values) => {
-    const { username, password } = values;
-
-    try {
-      await signIn({ username, password });
-      navigate("/"); // 3. Redirect to the repository list view on success
-    } catch (e) {
-      console.log("Submission error:", e);
-    }
-  };
-
+// 1. Pure Presentational Component (Exported for Testing)
+export const SignInContainer = ({ onSubmit }) => {
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -89,6 +76,7 @@ const SignIn = () => {
         onChangeText={formik.handleChange("username")}
         onBlur={formik.handleBlur("username")}
         autoCapitalize="none"
+        testID="usernameInput" // Tagged for testing
       />
       {usernameError && (
         <Text style={styles.errorText}>{formik.errors.username}</Text>
@@ -106,18 +94,41 @@ const SignIn = () => {
         onBlur={formik.handleBlur("password")}
         secureTextEntry
         autoCapitalize="none"
+        testID="passwordInput" // Tagged for testing
       />
       {passwordError && (
         <Text style={styles.errorText}>{formik.errors.password}</Text>
       )}
 
-      <Pressable style={styles.button} onPress={formik.handleSubmit}>
+      <Pressable
+        style={styles.button}
+        onPress={formik.handleSubmit}
+        testID="submitButton" // Tagged for testing
+      >
         <Text style={styles.buttonText} fontSize="subheading">
           Sign in
         </Text>
       </Pressable>
     </View>
   );
+};
+
+// 2. The Smart Component Wrapper (Default Export)
+const SignIn = () => {
+  const [signIn] = useSignIn();
+  const navigate = useNavigate();
+
+  const onSubmit = async (values) => {
+    const { username, password } = values;
+    try {
+      await signIn({ username, password });
+      navigate("/");
+    } catch (e) {
+      console.log("Submission error:", e);
+    }
+  };
+
+  return <SignInContainer onSubmit={onSubmit} />;
 };
 
 export default SignIn;
