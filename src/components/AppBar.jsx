@@ -9,44 +9,64 @@ import useSignOut from "../hooks/useSignOut";
 
 const styles = StyleSheet.create({
   container: {
+    // WHY: Ensures the top navigation bar clears the native hardware status bar notch area (time, battery, etc.)
     paddingTop: Constants.statusBarHeight,
-    backgroundColor: theme.colors.appBar, // Fixed: matching your theme.js definition
+    backgroundColor: theme.colors.appBar,
     flexDirection: "row",
   },
   scrollContainer: {
     paddingHorizontal: 10,
     paddingVertical: 15,
-    gap: 20,
+    gap: 20, // Clean spacing layout engine config between navigation links
   },
   tabText: {
-    color: theme.colors.appBarText, // Cleaner: using your theme's text color
+    color: theme.colors.appBarText,
     fontWeight: theme.fontWeights.bold,
   },
 });
 
+/**
+ * GLOBAL NAVIGATION APPLICATION BAR (AppBar)
+ * WHY IT EXISTS: Serves as the top header layout navigation hub across your entire application.
+ * * HOW IT WORKS: It establishes an active authentication query subscription listener to Apollo Client.
+ * If a session token exists in your local storage engine, the server returns user credentials,
+ * prompting the UI to switch between showing a "Sign in" link or an interactive "Sign out" button.
+ */
 const AppBar = () => {
+  // Query hook listening continuously for changes to the logged-in user state session
   const { data } = useQuery(GET_CURRENT_USER);
   const signOut = useSignOut();
 
-  // If data.me exists, the user is authenticated
+  // CONDITIONAL AUTHENTICATION LOGIC
+  // WHY: The GraphQL endpoint returns a field 'me' which evaluates to null if an invalid/empty
+  // Authorization header token is sent, and returns user data if authorized successfully.
   const isAuthenticated = data && data.me !== null;
 
   return (
     <View style={styles.container}>
+      {/* ScrollView horizontal: Crucial layout for supporting small mobile devices when 
+          adding multiple tab buttons, preventing text wrap collisions. */}
       <ScrollView horizontal contentContainerStyle={styles.scrollContainer}>
+        {/* Main Dashboard Feed Link */}
         <Link to="/">
           <Text style={styles.tabText} fontSize="subheading">
             Repositories
           </Text>
         </Link>
 
+        {/* AUTHENTICATION ROUTING TOGGLE SWITCH
+            WHY: Swapping out the view controls prevents an authenticated user from accessing 
+            the sign-in screen, and gives them immediate logout action handling.
+        */}
         {isAuthenticated ? (
+          // Sign Out is an action trigger, so we hook it into a clean, unstyled Pressable callback
           <Pressable onPress={signOut}>
             <Text style={styles.tabText} fontSize="subheading">
               Sign out
             </Text>
           </Pressable>
         ) : (
+          // Sign In is a navigation destination path route, so we wrap it in a Link component
           <Link to="/signin">
             <Text style={styles.tabText} fontSize="subheading">
               Sign in
