@@ -3,29 +3,31 @@ import { GET_REPOSITORY } from "../graphql/queries";
 
 /**
  * REUSABLE SINGLE REPOSITORY DATA HOOK (useRepository)
- * WHY IT EXISTS: To decouple your single-repository viewing logic from UI display implementations.
- * Instead of embedding individual item queries directly inside `SingleRepository.jsx`, this hook
- * manages the query subscription parameters independently.
- * * HOW IT WORKS: It fires the `GET_REPOSITORY` query dynamically to fetch detailed statistics
- * and external action URLs for one tracking profile.
- * * @param {String} id - The unique repository node identity string extracted from the routing path.
+ * WHY IT EXISTS: To decouple single-repository data management from the presentational view tier.
+ * It handles the asynchronous data fetching state, error handling, and caching policies completely
+ * independently of your UI display component layers.
+ * * @param {String} id - The unique repository identification string extracted from the routing path parameters.
  */
 const useRepository = (id) => {
-  // APOLLO DYNAMIC VARIABLE INJECTION
-  // WHY variables: { id }: The server needs to know exactly which single profile to look up.
-  // We feed our dynamic string token argument into the query options context variable slot.
-  const { data, loading, error } = useQuery(GET_REPOSITORY, {
-    fetchPolicy: "cache-and-network", // Instantly reads existing cache, then syncs from network smoothly
+  // APOLLO DYNAMIC VARIABLE INJECTION WITH NETWORK CACHE POLICIES
+  // WHY variables: { id }: The server requires an explicit ID parameter to isolate a single record entry.
+  // WHY fetchPolicy: "cache-and-network": By default, Apollo reads straight from local cache memory and stays there.
+  // By altering the policy to "cache-and-network", the hook instantly returns cached review items so the screen
+  // loads instantly, while concurrently firing an out-of-band network request to fetch freshly submitted review
+  // logs from the remote database backend.
+  const { data, loading, error, refetch } = useQuery(GET_REPOSITORY, {
+    fetchPolicy: "cache-and-network",
     variables: { id },
   });
 
   return {
-    // SAFE RECORD EXTRACTION
-    // GAURD PATTERN: Safely holds an 'undefined' fallback placeholder block while the async network
-    // stream finishes transferring the data payload, protecting the UI from crash calls on load.
-    repository: data ? data.repository : undefined,
+    // SAFE DATA OBJECT RESOLUTION
+    // Optional chaining (`data?.repository`) safely yields 'undefined' while the network stream finishes
+    // resolving, protecting presentational layouts from referencing properties on null layout instances.
+    repository: data?.repository,
     loading,
-    error, // Explicitly returned to let consuming views handle backend failures gracefully
+    error,
+    refetch, // Explicitly exposed to give presentational components manual refreshing control if needed
   };
 };
 

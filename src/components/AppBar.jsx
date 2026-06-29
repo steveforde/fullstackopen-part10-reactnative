@@ -30,7 +30,8 @@ const styles = StyleSheet.create({
  * WHY IT EXISTS: Serves as the top header layout navigation hub across your entire application.
  * * HOW IT WORKS: It establishes an active authentication query subscription listener to Apollo Client.
  * If a session token exists in your local storage engine, the server returns user credentials,
- * prompting the UI to switch between showing a "Sign in" link or an interactive "Sign out" button.
+ * prompting the UI to switch between showing a "Sign in" link or showing the authenticated "Create a review"
+ * and "Sign out" action options.
  */
 const AppBar = () => {
   // Query hook listening continuously for changes to the logged-in user state session
@@ -56,15 +57,24 @@ const AppBar = () => {
 
         {/* AUTHENTICATION ROUTING TOGGLE SWITCH
             WHY: Swapping out the view controls prevents an authenticated user from accessing 
-            the sign-in screen, and gives them immediate logout action handling.
+            the sign-in screen, and opens up access to premium authenticated user flows like reviewing repositories.
         */}
         {isAuthenticated ? (
-          // Sign Out is an action trigger, so we hook it into a clean, unstyled Pressable callback
-          <Pressable onPress={signOut}>
-            <Text style={styles.tabText} fontSize="subheading">
-              Sign out
-            </Text>
-          </Pressable>
+          <>
+            {/* Create a review is a navigation path destination, wrapped cleanly in a Link wrapper */}
+            <Link to="/create-review">
+              <Text style={styles.tabText} fontSize="subheading">
+                Create a review
+              </Text>
+            </Link>
+
+            {/* Sign Out is an action trigger, so we hook it into a clean, unstyled Pressable callback */}
+            <Pressable onPress={signOut}>
+              <Text style={styles.tabText} fontSize="subheading">
+                Sign out
+              </Text>
+            </Pressable>
+          </>
         ) : (
           // Sign In is a navigation destination path route, so we wrap it in a Link component
           <Link to="/signin">

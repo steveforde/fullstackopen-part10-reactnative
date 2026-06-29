@@ -4,6 +4,7 @@ import RepositoryList from "./RepositoryList";
 import AppBar from "./AppBar";
 import SignIn from "./SignIn";
 import SingleRepository from "./SingleRepository";
+import CreateReview from "./CreateReview"; // Imported review form layer
 import theme from "../theme";
 
 const styles = StyleSheet.create({
@@ -36,6 +37,13 @@ const Main = () => {
             and mounts <SingleRepository />, allowing child views to harvest that string value using useParams().
         */}
         <Route path="/repository/:id" element={<SingleRepository />} />
+
+        {/* REVIEWS CREATION ROUTE
+            WHY IT EXISTS: Maps the user interaction form view path. When an authorized user hits 
+            the tab bar item link, the router intercepts the navigation match state and mounts the 
+            review inputs structure framework cleanly right here.
+        */}
+        <Route path="/create-review" element={<CreateReview />} />
 
         {/* User Session Form Authentication Submission View Screen */}
         <Route path="/signin" element={<SignIn />} />
