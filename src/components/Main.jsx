@@ -5,6 +5,7 @@ import AppBar from "./AppBar";
 import SignIn from "./SignIn";
 import SingleRepository from "./SingleRepository";
 import CreateReview from "./CreateReview"; // Imported review form layer
+import SignUp from "./SignUp"; // Imported registration form layer
 import theme from "../theme";
 
 const styles = StyleSheet.create({
@@ -47,6 +48,13 @@ const Main = () => {
 
         {/* User Session Form Authentication Submission View Screen */}
         <Route path="/signin" element={<SignIn />} />
+
+        {/* USER REGISTRATION ROUTE
+            WHY IT EXISTS: Maps the unauthenticated user registration pathway. When an anonymous 
+            user hits the "Sign up" tab item link, this route intercepts the match state to display 
+            the user registration schema form inputs framework cleanly.
+        */}
+        <Route path="/signup" element={<SignUp />} />
 
         {/* FALLBACK / WILDCARD ROUTE CATCHER
             WHY: If the user inputs a broken/malformed deep link path url matching none of the targets above, 

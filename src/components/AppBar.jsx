@@ -76,12 +76,21 @@ const AppBar = () => {
             </Pressable>
           </>
         ) : (
-          // Sign In is a navigation destination path route, so we wrap it in a Link component
-          <Link to="/signin">
-            <Text style={styles.tabText} fontSize="subheading">
-              Sign in
-            </Text>
-          </Link>
+          <>
+            {/* Sign In is a navigation destination path route, so we wrap it in a Link component */}
+            <Link to="/signin">
+              <Text style={styles.tabText} fontSize="subheading">
+                Sign in
+              </Text>
+            </Link>
+
+            {/* Sign Up is an unauthenticated navigation link destination */}
+            <Link to="/signup">
+              <Text style={styles.tabText} fontSize="subheading">
+                Sign up
+              </Text>
+            </Link>
+          </>
         )}
       </ScrollView>
     </View>
