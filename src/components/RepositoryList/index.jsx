@@ -37,6 +37,13 @@ const RepositoryListHeader = ({ selectedOrder, setSelectedOrder }) => {
         selectedValue={selectedOrder}
         onValueChange={(itemValue) => setSelectedOrder(itemValue)}
       >
+        {/* Adds a descriptive placeholder item at index 0 */}
+        <Picker.Item
+          label="Select an item..."
+          value="LATEST"
+          enabled={false}
+          style={{ color: "#aaa" }}
+        />
         <Picker.Item label="Latest repositories" value="LATEST" />
         <Picker.Item label="Highest rated repositories" value="HIGHEST_RATED" />
         <Picker.Item label="Lowest rated repositories" value="LOWEST_RATED" />
