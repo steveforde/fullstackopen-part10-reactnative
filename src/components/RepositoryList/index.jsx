@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { FlatList, View, StyleSheet, Pressable } from "react-native";
+import { FlatList, View, StyleSheet, Pressable, TextInput } from "react-native";
 import { useNavigate } from "react-router-native";
 import { Picker } from "@react-native-picker/picker";
+import { useDebounce } from "use-debounce";
 import RepositoryItem from "./RepositoryItem";
 import useRepositories from "../../hooks/useRepositories";
 
@@ -13,6 +14,15 @@ const styles = StyleSheet.create({
   headerContainer: {
     padding: 10,
     backgroundColor: "#e1e4e8",
+    gap: 10, // Adds gap between search input and picker dropdown
+  },
+  searchBar: {
+    backgroundColor: "white",
+    padding: 12,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    fontSize: 16,
   },
   picker: {
     backgroundColor: "white",
@@ -28,10 +38,25 @@ const ItemSeparator = () => <View style={styles.separator} />;
  * WHY IT EXISTS: Isolates the dropdown menu display rendering logic. Placing this within
  * the FlatList's ListHeaderComponent ensures it stays at the absolute top of the screen
  * but rolls up naturally out of view when a user scrolls deep down into the list.
+ * UPDATE: Added a TextInput text field layout to support text searching alongside sorting filter controls.
  */
-const RepositoryListHeader = ({ selectedOrder, setSelectedOrder }) => {
+const RepositoryListHeader = ({
+  selectedOrder,
+  setSelectedOrder,
+  searchQuery,
+  setSearchQuery,
+}) => {
   return (
     <View style={styles.headerContainer}>
+      {/* Real-time textual search field */}
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search repositories..."
+        placeholderTextColor="#aaa"
+        value={searchQuery}
+        onChangeText={(text) => setSearchQuery(text)}
+      />
+
       <Picker
         style={styles.picker}
         selectedValue={selectedOrder}
@@ -63,6 +88,8 @@ export const RepositoryListContainer = ({
   onRepositoryPress,
   selectedOrder,
   setSelectedOrder,
+  searchQuery,
+  setSearchQuery,
 }) => {
   // Extract node data safely from GraphQL edges structure
   const repositoryNodes = repositories
@@ -83,6 +110,8 @@ export const RepositoryListContainer = ({
         <RepositoryListHeader
           selectedOrder={selectedOrder}
           setSelectedOrder={setSelectedOrder}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
       }
     />
@@ -95,17 +124,37 @@ export const RepositoryListContainer = ({
  */
 const RepositoryList = () => {
   const [selectedOrder, setSelectedOrder] = useState("LATEST");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Debounce the raw typing string state by 500 milliseconds to optimize network requests
+  const [debouncedSearchKeyword] = useDebounce(searchQuery, 500);
 
   // Helper dictionary transforming select states directly into GraphQL parameters
   const getQueryVariables = () => {
+    const baseVariables = {
+      searchKeyword: debouncedSearchKeyword,
+    };
+
     switch (selectedOrder) {
       case "HIGHEST_RATED":
-        return { orderBy: "RATING_AVERAGE", orderDirection: "DESC" };
+        return {
+          ...baseVariables,
+          orderBy: "RATING_AVERAGE",
+          orderDirection: "DESC",
+        };
       case "LOWEST_RATED":
-        return { orderBy: "RATING_AVERAGE", orderDirection: "ASC" };
+        return {
+          ...baseVariables,
+          orderBy: "RATING_AVERAGE",
+          orderDirection: "ASC",
+        };
       case "LATEST":
       default:
-        return { orderBy: "CREATED_AT", orderDirection: "DESC" };
+        return {
+          ...baseVariables,
+          orderBy: "CREATED_AT",
+          orderDirection: "DESC",
+        };
     }
   };
 
@@ -125,6 +174,8 @@ const RepositoryList = () => {
       onRepositoryPress={onRepositoryPress}
       selectedOrder={selectedOrder}
       setSelectedOrder={setSelectedOrder}
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
     />
   );
 };
