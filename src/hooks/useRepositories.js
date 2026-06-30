@@ -9,7 +9,7 @@ import { GET_REPOSITORIES } from "../graphql/queries";
  * * HOW IT WORKS: It triggers Apollo Client's query runner to establish an active, cached, and
  * up-to-date data stream matching the query schema definition layout.
  */
-const useRepositories = () => {
+const useRepositories = (variables) => {
   // APOLLO QUERY HOOK CONFIGURATION
   // WHY 'cache-and-network': This policy delivers the ultimate balance between performance and freshness.
   // 1. First, it instantly returns any data already saved in your local Apollo memory cache (UI renders instantly).
@@ -17,6 +17,7 @@ const useRepositories = () => {
   // 3. Once the server responds, it updates the cache and transparently forces a visual UI refresh.
   const { data, loading, refetch, ...result } = useQuery(GET_REPOSITORIES, {
     fetchPolicy: "cache-and-network",
+    variables, // Pass-through variables engine to supply orderBy and orderDirection parameters to the query
   });
 
   return {
