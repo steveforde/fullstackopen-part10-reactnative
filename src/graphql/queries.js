@@ -74,12 +74,28 @@ export const GET_REPOSITORY = gql`
 /**
  * 3. GET CURRENT LOGGED-IN USER QUERY (GET_CURRENT_USER)
  * WHY IT EXISTS: Used by AppBar to implement authentication-state UI switching.
+ * UPDATE: Added a conditional includeReviews argument using the GraphQL @include directive
+ * to safely request user reviews without overhead elsewhere.
  */
 export const GET_CURRENT_USER = gql`
-  query getCurrentUser {
+  query getCurrentUser($includeReviews: Boolean = false) {
     me {
       id
       username
+      reviews @include(if: $includeReviews) {
+        edges {
+          node {
+            id
+            text
+            rating
+            createdAt
+            repository {
+              fullName
+              id
+            }
+          }
+        }
+      }
     }
   }
 `;

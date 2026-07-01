@@ -7,6 +7,7 @@ import SingleRepository from "./SingleRepository";
 import CreateReview from "./CreateReview"; // Imported review form layer
 import SignUp from "./SignUp"; // Imported registration form layer
 import theme from "../theme";
+import MyReviews from "./MyReviews";
 
 const styles = StyleSheet.create({
   container: {
@@ -31,31 +32,28 @@ const Main = () => {
       <Routes>
         {/* Main Dashboard view listing tracked software repository metrics profiles */}
         <Route path="/" element={<RepositoryList />} />
-
         {/* DYNAMIC URL ROUTE
             WHY: The syntax colon syntax identifier (":id") registers a placeholder variable path parameter token slot. 
             When navigating to paths like `/repository/jaredpalmer.formik`, the router intercepts the variable 
             and mounts <SingleRepository />, allowing child views to harvest that string value using useParams().
         */}
         <Route path="/repository/:id" element={<SingleRepository />} />
-
         {/* REVIEWS CREATION ROUTE
             WHY IT EXISTS: Maps the user interaction form view path. When an authorized user hits 
             the tab bar item link, the router intercepts the navigation match state and mounts the 
             review inputs structure framework cleanly right here.
         */}
         <Route path="/create-review" element={<CreateReview />} />
-
+        <Route path="/my-reviews" element={<MyReviews />} />{" "}
+        {/* Wired up routing target */}
         {/* User Session Form Authentication Submission View Screen */}
         <Route path="/signin" element={<SignIn />} />
-
         {/* USER REGISTRATION ROUTE
             WHY IT EXISTS: Maps the unauthenticated user registration pathway. When an anonymous 
             user hits the "Sign up" tab item link, this route intercepts the match state to display 
             the user registration schema form inputs framework cleanly.
         */}
         <Route path="/signup" element={<SignUp />} />
-
         {/* FALLBACK / WILDCARD ROUTE CATCHER
             WHY: If the user inputs a broken/malformed deep link path url matching none of the targets above, 
             the path "*" catches the request and safely triggers an instant view redirection back to the safe root dashboard.

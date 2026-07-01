@@ -9,15 +9,15 @@ import useSignOut from "../hooks/useSignOut";
 
 const styles = StyleSheet.create({
   container: {
-    // WHY: Ensures the top navigation bar clears the native hardware status bar notch area (time, battery, etc.)
     paddingTop: Constants.statusBarHeight,
     backgroundColor: theme.colors.appBar,
     flexDirection: "row",
   },
   scrollContainer: {
-    paddingHorizontal: 10,
+    paddingLeft: 10,
+    paddingRight: 60, // 👈 CRUCIAL: Adds 60px padding at the end so you can scroll the text completely clear of the gear button
     paddingVertical: 15,
-    gap: 20, // Clean spacing layout engine config between navigation links
+    gap: 20,
   },
   tabText: {
     color: theme.colors.appBarText,
@@ -65,6 +65,13 @@ const AppBar = () => {
             <Link to="/create-review">
               <Text style={styles.tabText} fontSize="subheading">
                 Create a review
+              </Text>
+            </Link>
+
+            {/* New Link route inserted right here */}
+            <Link to="/my-reviews">
+              <Text style={styles.tabText} fontSize="subheading">
+                My reviews
               </Text>
             </Link>
 

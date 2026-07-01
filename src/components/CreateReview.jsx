@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, View, Pressable, TextInput } from "react-native";
 import { Formik } from "formik";
 import * as Yup from "yup";
@@ -6,6 +6,7 @@ import { useMutation } from "@apollo/client/react";
 import { useNavigate } from "react-router-native";
 
 import { CREATE_REVIEW } from "../graphql/mutations";
+import { GET_CURRENT_USER } from "../graphql/queries";
 import Text from "./Text";
 import theme from "../theme";
 
@@ -30,6 +31,14 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.body,
     marginTop: 5,
     marginLeft: 5,
+  },
+  serverErrorContainer: {
+    backgroundColor: "#fde8e8",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: "#f8b4b4",
   },
   button: {
     backgroundColor: theme.colors.primary,
@@ -63,7 +72,7 @@ const initialValues = {
   text: "",
 };
 
-export const CreateReviewContainer = ({ onSubmit }) => {
+export const CreateReviewContainer = ({ onSubmit, serverError }) => {
   return (
     <Formik
       initialValues={initialValues}
@@ -144,6 +153,13 @@ export const CreateReviewContainer = ({ onSubmit }) => {
             <Text style={styles.errorText}>{errors.text}</Text>
           )}
 
+          {/* Visual banner to display API restriction errors */}
+          {serverError && (
+            <View style={styles.serverErrorContainer}>
+              <Text style={{ color: "#d73a4a" }}>{serverError}</Text>
+            </View>
+          )}
+
           <Pressable onPress={handleSubmit} style={styles.button}>
             <Text style={styles.buttonText}>Create a review</Text>
           </Pressable>
@@ -154,12 +170,16 @@ export const CreateReviewContainer = ({ onSubmit }) => {
 };
 
 const CreateReview = () => {
-  const [mutate] = useMutation(CREATE_REVIEW);
+  const [error, setError] = useState(null);
+  const [mutate] = useMutation(CREATE_REVIEW, {
+    refetchQueries: ["getCurrentUser"],
+  });
   const navigate = useNavigate();
 
   const onSubmit = async (values) => {
     const { ownerName, repositoryName, rating, text } = values;
     try {
+      setError(null);
       const { data } = await mutate({
         variables: {
           review: {
@@ -175,11 +195,12 @@ const CreateReview = () => {
         navigate(`/repository/${data.createReview.repositoryId}`);
       }
     } catch (e) {
-      console.log("Error creating review:", e);
+      setError(e.message);
+      console.log("Error creating review:", e.message);
     }
   };
 
-  return <CreateReviewContainer onSubmit={onSubmit} />;
+  return <CreateReviewContainer onSubmit={onSubmit} serverError={error} />;
 };
 
 export default CreateReview;
