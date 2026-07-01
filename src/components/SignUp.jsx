@@ -10,6 +10,9 @@ import useSignIn from "../hooks/useSignIn";
 import Text from "./Text";
 import theme from "../theme";
 
+// ==========================================
+// 1. LAYOUT STYLESHEET
+// ==========================================
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
@@ -24,7 +27,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   inputError: {
-    borderColor: "#d73a4a",
+    borderColor: "#d73a4a", // Red border applied on top of normal input style if field fails validation
   },
   errorText: {
     color: "#d73a4a",
@@ -46,6 +49,9 @@ const styles = StyleSheet.create({
   },
 });
 
+// ==========================================
+// 2. VALIDATION SCHEMA (YUP)
+// ==========================================
 const validationSchema = Yup.object().shape({
   username: Yup.string()
     .required("Username is required")
@@ -56,6 +62,8 @@ const validationSchema = Yup.object().shape({
     .min(5, "Password must be between 5 and 50 characters")
     .max(50, "Password must be between 5 and 50 characters"),
   passwordConfirm: Yup.string()
+    // WHY Yup.ref('password'): References the current value typed into the password input.
+    // Enforces strict verification parity; if values do not match exactly, validation halts.
     .oneOf([Yup.ref("password"), null], "Passwords must match")
     .required("Password confirmation is required"),
 });
@@ -66,22 +74,27 @@ const initialValues = {
   passwordConfirm: "",
 };
 
+// ==========================================
+// 3. PRESENTATIONAL CONTAINER (PURE FORM UI)
+// ==========================================
 export const SignUpContainer = ({ onSubmit }) => {
   return (
+    // Formik encapsulates tracking field keystrokes, touched flags, and standard submission lifecycles
     <Formik
       initialValues={initialValues}
       onSubmit={onSubmit}
       validationSchema={validationSchema}
     >
       {({
-        handleChange,
-        handleBlur,
-        handleSubmit,
-        values,
-        errors,
-        touched,
+        handleChange, // Function to pipe string entries straight into Formik's state container
+        handleBlur, // Marks a field as "touched" upon exit so error text doesn't show prematurely
+        handleSubmit, // Checks validation rules first; fires outer onSubmit prop only if clean
+        values, // Mirror dictionary holding active state form inputs
+        errors, // Dynamic validation error messaging mapping
+        touched, // Dictionary tracking which input fields the user has interactive focus history with
       }) => (
         <View style={styles.container}>
+          {/* USERNAME INPUT */}
           <TextInput
             style={[
               styles.input,
@@ -97,6 +110,7 @@ export const SignUpContainer = ({ onSubmit }) => {
             <Text style={styles.errorText}>{errors.username}</Text>
           )}
 
+          {/* PASSWORD INPUT */}
           <TextInput
             style={[
               styles.input,
@@ -104,7 +118,7 @@ export const SignUpContainer = ({ onSubmit }) => {
             ]}
             placeholder="Password"
             placeholderTextColor="#aaa"
-            secureTextEntry
+            secureTextEntry // Obscures typed credentials into dots for privacy
             onChangeText={handleChange("password")}
             onBlur={handleBlur("password")}
             value={values.password}
@@ -113,6 +127,7 @@ export const SignUpContainer = ({ onSubmit }) => {
             <Text style={styles.errorText}>{errors.password}</Text>
           )}
 
+          {/* PASSWORD CONFIRMATION INPUT */}
           <TextInput
             style={[
               styles.input,
@@ -122,7 +137,7 @@ export const SignUpContainer = ({ onSubmit }) => {
             ]}
             placeholder="Password confirmation"
             placeholderTextColor="#aaa"
-            secureTextEntry
+            secureTextEntry // Masks confirmation credentials identically
             onChangeText={handleChange("passwordConfirm")}
             onBlur={handleBlur("passwordConfirm")}
             value={values.passwordConfirm}
@@ -140,27 +155,34 @@ export const SignUpContainer = ({ onSubmit }) => {
   );
 };
 
+// ==========================================
+// 4. SMART LOGIC CONTAINER COMPONENT
+// ==========================================
 const SignUp = () => {
+  // Hook tracks GraphQL registration mutation configuration profile
   const [mutate] = useMutation(CREATE_USER);
+  // Custom auth token persistence hook reused from the SignIn logic layout track
   const [signIn] = useSignIn();
   const navigate = useNavigate();
 
   const onSubmit = async (values) => {
     const { username, password } = values;
     try {
-      // 1. Create the user
+      // Step 1: Fire network mutation request to write the new user row to the database
       await mutate({
         variables: {
           user: { username, password },
         },
       });
 
-      // 2. Automatically sign in with your custom hook
+      // Step 2: On registration success, execute auto-login using the same useSignIn hook logic.
+      // This fetches the jwt access token and writes it straight to secure device storage.
       await signIn({ username, password });
 
-      // 3. Redirect to the repository feed
+      // Step 3: Redirect viewport straight back onto the safe home directory track
       navigate("/");
     } catch (e) {
+      // Catches server-side database validation hits (e.g. "Username already taken")
       console.log("Error registering new user:", e);
     }
   };
