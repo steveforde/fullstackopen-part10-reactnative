@@ -1,31 +1,34 @@
 import React from "react";
-import { FlatList, View, StyleSheet } from "react-native";
-import { useQuery } from "@apollo/client/react";
+import { FlatList, View, StyleSheet, Pressable, Alert } from "react-native";
+import { useQuery, useMutation } from "@apollo/client/react";
+import { useNavigate } from "react-router-native";
+
 import { GET_CURRENT_USER } from "../graphql/queries";
+import { DELETE_REVIEW } from "../graphql/mutations";
 import Text from "./Text";
 import theme from "../theme";
 
-// ==========================================
-// 1. LAYOUT STYLESHEET
-// ==========================================
 const styles = StyleSheet.create({
   separator: {
     height: 10,
-    backgroundColor: "#e1e4e8", // Creates the light gray gap between items
+    backgroundColor: "#e1e4e8",
   },
   reviewContainer: {
     backgroundColor: "white",
     padding: 15,
-    flexDirection: "row", // Places the round rating badge side-by-side with the text content
+  },
+  topSection: {
+    flexDirection: "row",
+    marginBottom: 15,
   },
   ratingContainer: {
     width: 50,
     height: 50,
-    borderRadius: 25, // Half of width/height makes it a perfect circular badge
+    borderRadius: 25,
     borderWidth: 2,
     borderColor: theme.colors.primary,
-    alignItems: "center", // Centers rating number horizontally
-    justifyContent: "center", // Centers rating number vertically
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 15,
   },
   ratingText: {
@@ -33,7 +36,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.fontWeights.bold,
   },
   contentContainer: {
-    flex: 1, // Forces text section to stretch and fill remaining space without overflowing screen
+    flex: 1,
   },
   usernameText: {
     fontWeight: theme.fontWeights.bold,
@@ -44,19 +47,35 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   bodyText: {
-    lineHeight: 20, // Prevents text lines from bunching together tightly
+    lineHeight: 20,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  button: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  viewButton: {
+    backgroundColor: theme.colors.primary,
+    marginRight: 10,
+  },
+  deleteButton: {
+    backgroundColor: "#d73a4a", // Red theme indicator for delete action blocks
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: theme.fontWeights.bold,
   },
 });
 
-// Small presentation helper component to cleanly split individual list items
 const ItemSeparator = () => <View style={styles.separator} />;
 
-// ==========================================
-// 2. PRESENTATIONAL COMPONENT: REVIEW ITEM
-// ==========================================
-const ReviewItem = ({ review }) => {
-  // WHY 'fi-FI': Formats dates consistently into the exact DD.MM.YYYY structure required.
-  // e.g., "2026-07-01T11:00:00Z" becomes "01.07.2026"
+const ReviewItem = ({ review, onDelete, onView }) => {
   const formattedDate = new Date(review.createdAt).toLocaleDateString("fi-FI", {
     day: "2-digit",
     month: "2-digit",
@@ -65,58 +84,97 @@ const ReviewItem = ({ review }) => {
 
   return (
     <View style={styles.reviewContainer}>
-      {/* LEFT COLUMN: ROUND RATING BADGE */}
-      <View style={styles.ratingContainer}>
-        <Text style={styles.ratingText} fontSize="subheading">
-          {review.rating}
-        </Text>
+      {/* TOP SECTION: RATING BADGE AND TEXT BODY */}
+      <View style={styles.topSection}>
+        <View style={styles.ratingContainer}>
+          <Text style={styles.ratingText} fontSize="subheading">
+            {review.rating}
+          </Text>
+        </View>
+        <View style={styles.contentContainer}>
+          <Text style={styles.usernameText} fontSize="subheading">
+            {review.repository.fullName}
+          </Text>
+          <Text style={styles.dateText}>{formattedDate}</Text>
+          <Text style={styles.bodyText}>{review.text}</Text>
+        </View>
       </View>
 
-      {/* RIGHT COLUMN: TEXT INFRASTRUCTURE */}
-      <View style={styles.contentContainer}>
-        {/* Displays repository name instead of username since these are the user's personal reviews */}
-        <Text style={styles.usernameText} fontSize="subheading">
-          {review.repository.fullName}
-        </Text>
-        <Text style={styles.dateText}>{formattedDate}</Text>
-        <Text style={styles.bodyText}>{review.text}</Text>
+      {/* BOTTOM SECTION: ACTION BUTTONS ROW */}
+      <View style={styles.buttonRow}>
+        <Pressable style={[styles.button, styles.viewButton]} onPress={onView}>
+          <Text style={styles.buttonText}>View repository</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.button, styles.deleteButton]}
+          onPress={onDelete}
+        >
+          <Text style={styles.buttonText}>Delete review</Text>
+        </Pressable>
       </View>
     </View>
   );
 };
 
-// ==========================================
-// 3. MAIN CONTAINER COMPONENT
-// ==========================================
 const MyReviews = () => {
-  // useQuery hook pulls the currently authenticated user profile data
-  const { data, loading } = useQuery(GET_CURRENT_USER, {
-    // WHY cache-and-network: Hits the local cache first for a lightning-fast render,
-    // but fires an underlying network request immediately to catch changes made on other views.
-    fetchPolicy: "cache-and-network",
+  const navigate = useNavigate();
 
-    // WHY includeReviews: true: Triggers the GraphQL @include(if: $includeReviews) directive
-    // inside queries.js to append the sub-array data payload only for this view.
+  // Destructure the query's 'refetch' method to trigger cache reloads manually
+  const { data, loading, refetch } = useQuery(GET_CURRENT_USER, {
+    fetchPolicy: "cache-and-network",
     variables: { includeReviews: true },
   });
 
-  // Safe fallback pattern prevents components below from throwing undefined errors
+  const [deleteReview] = useMutation(DELETE_REVIEW);
+
   if (loading || !data?.me) {
     return null;
   }
 
-  // WHY array mapping: Flattens the GraphQL relational "edges/node" connection architecture
-  // down into a standard, clean flat array that the React Native FlatList expects.
   const reviewNodes = data.me.reviews
     ? data.me.reviews.edges.map((edge) => edge.node)
     : [];
+
+  const handleViewRepository = (repositoryId) => {
+    navigate(`/repository/${repositoryId}`);
+  };
+
+  const handleDeleteReview = (reviewId) => {
+    // Triggers native mobile context prompt module window
+    Alert.alert(
+      "Delete review",
+      "Are you sure you want to delete this review?",
+      [
+        { text: "CANCEL", style: "cancel" },
+        {
+          text: "DELETE",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteReview({ variables: { id: reviewId } });
+              refetch(); // Instantly update view without leaving screen blank
+            } catch (e) {
+              console.log("Error deleting review:", e.message);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <FlatList
       data={reviewNodes}
       ItemSeparatorComponent={ItemSeparator}
-      renderItem={({ item }) => <ReviewItem review={item} />}
-      keyExtractor={(item) => item.id} // Uses unique node database IDs as keys
+      renderItem={({ item }) => (
+        <ReviewItem
+          review={item}
+          onView={() => handleViewRepository(item.repository.id)}
+          onDelete={() => handleDeleteReview(item.id)}
+        />
+      )}
+      keyExtractor={(item) => item.id}
     />
   );
 };
