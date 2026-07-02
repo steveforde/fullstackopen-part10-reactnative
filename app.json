@@ -24,6 +24,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8f3a6d29-c5ce-48ad-ac46-3abfb5d57f4f"
+      }
+    },
+    "owner": "forde1972s-organization",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8f3a6d29-c5ce-48ad-ac46-3abfb5d57f4f"
     }
   }
 }
